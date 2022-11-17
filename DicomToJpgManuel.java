@@ -1,9 +1,13 @@
 /**
-Starting point error : 
+Starting 2 point error : 
 
 java.lang.IllegalArgumentException: Raster ShortInterleavedRaster: 
 width = 256 height = 512 #numDataElements 1 is incompatible with ColorModel IndexColorModel: #pixelBits = 8 numComponents = 3 color space = java.awt.color.ICC_ColorSpace@28ec9a1a transparency = 1 transIndex   = -1 has alpha = false isAlphaPre = false
    at java.awt.image.BufferedImage.<init>(BufferedImage.java:454)
+   
+Raster ByteInterleavedRaster: width = 618 height = 811 #numDataElements 3 dataOff[0] = 0 is 
+incompatible with ColorModel ColorModel: #pixelBits = 24 numComponents = 3 color 
+space = java.awt.color.ICC_ColorSpace@130dd068 transparency = 1 has alpha = false isAlphaPre = false
 */
 
 import javax.imageio.ImageReader;
