@@ -1,0 +1,23 @@
+.customScrolls {
+  scrollbar-color: #888 #e4e4e4;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable both-edges;
+}
+
+.customScrolls::-webkit-scrollbar {
+  width: 6px;
+  cursor:  pointer;
+}
+
+.customScrolls::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+.customScrolls::-webkit-scrollbar-thumb {
+  background: #888; 
+   border-radius: 8px;
+}
+
+.customScrolls::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
