@@ -4,6 +4,33 @@ var paramMenuListModuls = 0;
 var paramMenuListReports = 1;
 var menuTypeLeft = 0;
 var menuTypeRight = 1;
+var paramShortcutMdKey = 99998;
+
+function getCssClasses() {
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    var menuItem = '.wtmMenuItem {align-items : center; cursor: pointer;  position: relative; display: flex; width : 100%; height: 38px; overflow: hidden; box-sizing:border-box; padding:4px; margin:4px; border-radius:6.5px;}';
+    var menuLabel = '.wtmMenuLabel {text-shadow : 0 0 4px rgb(0 0 0 / 60%); box-sizing:border-box; align-items : center; cursor: pointer;  display : flex;  flex-direction: row-reverse; vertical-align:baseline; position:relative; border-radius: 4px;  font-size : 14px; color : white; white-space : nowrap; justify-content :center; width:120px; margin : 1px 1px 7px 0px;  text-align: center;}';
+    var iconItem = '.wtmIconItem {position:relative; display:flex; background:transparent; font-size:24px; padding:2px; margin:2px; cursor:pointer;}';
+    var toolIcon = '.wtmToolIcon {width :65px; height: 100%; box-sizing:border-box; align-items: center; position:relative; display:flex; background:transparent; padding:4px 2px 4px; margin:2px;}';
+    var captionItem = '.wtmCaptionItem {position:relative; display:flex; font-size:13px; margin-left:6px; flex-wrap: wrap; overflow: unset;}';
+    var captionParent = '.wtmCaptionParent {align-items: flex-end; height: 38px; position:relative; display:flex; width: 100%; box-sizing:border-box; padding: 2px; margin:2px; margin-bottom: 5px;}';
+    var menuParent = '.wtmMenuParent {flex-direction : row; flex-wrap: wrap;  overflow : auto;  align-content: flex-start; position:relative; padding: 2px; display:flex; }';
+    var noItemFoundParent = '.wtmItemNotFound { display:flex; flex-wrap:wrap; align-content :space-around; justify-content : center;  place-content :space-around; flex-direction :column-reverse;  font-size: 16px; border-radius : 10px; background : white; position:relative; color:#101010cc; font-weight:bold; font-family:monospace !important; }';
+    var ribbonContainer = '.ribbon-container {cursor:default; display:inline-block; height:auto; margin-left:-10px; position:relative}';
+    var ribbonContainerB = '.ribbon-container:before{ border-bottom:11px solid var(--selectcolor); border-right:10px solid hsla(0,0%,100%,0); border-top:11px solid var(--selectcolor);content:" ";position:absolute;right:-10px;top:0}';
+    var ribbonContainerA = '.ribbon-container:after{border-bottom:6px solid hsla(0,0%,100%,0);border-right:6px solid var(--selectcolor);bottom:-6px;content:" ";left:0;position:absolute}';
+    var ribbonContainerC = '.ribbon-container .ribbon-text{background-color:var(--selectcolor);box-sizing:border-box;color:#fff;display:block;line-height:18px;padding:2px 14px;font-size:13px !important;}';
+    var controlRightSide =  '.wtmItemRight {box-sizing:border-box; height:24px; display:flex;padding:4px; justify-content: flex-end; margin: 0px 3px 0px auto; background :#628599fc; border:solid 3px transparent; border-radius: 100%; width:24px;}';
+    style.innerHTML = controlRightSide+ ' ' + toolIcon + " " + menuItem + " " + menuLabel + " " + iconItem + " " + captionItem + " " + captionParent + " " + menuParent  + " " + noItemFoundParent + " " + ribbonContainer + " " + ribbonContainerA + " " + ribbonContainerB + " " + ribbonContainerC;
+    return style;
+}
+
+function getToolIcoBack() {
+    var toolIcoBack = document.createElement('div'); 
+    toolIcoBack.className = "wtmToolIcon";
+    return toolIcoBack;
+};
 
 function TCSDatasets() {
     this.owner = null;
@@ -12,17 +39,19 @@ function TCSDatasets() {
     this.formlar = [];
     this.raporlar = [];
     this.sonkullan = [];
-    this.kisayollar = [];
     this.userForm = [];
-    this.sbt_searchu = CZMtranslate(null, "Listelenecek Kayıt Bulunamadı.");
+    this.sbt_searchu = CZMtranslate(null, "Kayıt Bulunamadı");
     this.sbt_search = CZMtranslate(null, "Arama");
     this.sbt_reports = CZMtranslate(null, "Raporlar");
     this.sbt_settings = CZMtranslate(null, "Ayarlar");
     this.sbt_modules = CZMtranslate(null, "Modüller");
     this.sbt_kisayol = CZMtranslate(null, "Kısayollar");
+    this.sbt_kisayolT = CZMtranslate(null, "Kısayolları Düzenle");
     this.sbt_sonkullan = CZMtranslate(null, "Son Kullanılanlar");
     this.sbt_kullaniciTanimli = CZMtranslate(null, "Kullanıcı Tanımlı Formlar");
     this.isReportExist = false;
+    this.isUserPatient = (isPresent(MostParentWindow.HastaKey) && MostParentWindow.HastaKey > 0);
+    this.isFullLoad = false;
 };
 
 TCSDatasets.prototype.quickAccesModul = function() {
@@ -36,7 +65,7 @@ TCSDatasets.prototype.userDefinedModul = function() {
 };
 
 TCSDatasets.prototype.shortcutModul = function() {
-    var qa = {ismodul : true, modulno : 0, ustmdkey: 0, isshortcut: true, mdkey:99998, baslik: this.sbt_kisayol, basliktr: this.sbt_kisayol, iconname: "sf-shortcut" };
+    var qa = {ismodul : true, modulno : 0, ustmdkey: 0, isshortcut: true, mdkey:paramShortcutMdKey, baslik: this.sbt_kisayol, basliktr: this.sbt_kisayol, iconname: "sf-shortcut" };
     return qa;
 };
 
@@ -97,28 +126,33 @@ TCSDatasets.prototype.setKisayolSorguQuery = function() {
 TCSDatasets.prototype.setModulsAfterLocate = function() {
     this.self.modulFormLoad(this.locateDSet, true, this.self.moduller, false, false);
     this.self.moduller.push(this.self.userDefinedModul());
-    this.self.moduller.push(this.self.shortcutModul()); // burada varmı yokmu kontrolü
     this.self.setKisayolSorguQuery();
 };
 
 TCSDatasets.prototype.setFormsAfterLocate = function() {
     this.self.modulFormLoad(this.locateDSet, false, this.self.formlar, false, false);
     this.self.afterModulFormLoad();
-    this.self.owner.setInitPanels();     
+    this.self.owner.setInitPanels();   
+    this.self.isFullLoad = true;
     this.self.setRaporSorguQuery();
 };
 
 TCSDatasets.prototype.setRaporAfterLocate = function() {
-    this.self.modulFormLoad(this.locateDSet, false, this.self.raporlar, true, false);
-    if (!this.self.isReportExist) { 
-        this.self.owner.tblReports.isActive = false;
-        this.self.owner.tblReports.style.color =  "#b7b7b7";
-        this.self.owner.tblReports.style["text-shadow"] = "unset";
+    if (!this.isUserPatient) {
+        this.self.modulFormLoad(this.locateDSet, false, this.self.raporlar, true, false);
+        if (!this.self.isReportExist) { 
+            this.self.owner.tblReports.isActive = false;
+            this.self.owner.tblReports.style.color = "#b7b7b7";
+            this.self.owner.tblReports.style["text-shadow"] = "unset";
+        }
     }
 };
 
 TCSDatasets.prototype.setKisayolAfterLocate = function() {
-    this.self.modulFormLoad(this.locateDSet, false, this.self.formlar, false, true);
+    if ((!this.isUserPatient) && (this.locateDSet.recordCount() > 0) ) {
+        this.self.moduller.splice( 0, 0, this.self.shortcutModul());
+        this.self.modulFormLoad(this.locateDSet, false, this.self.formlar, false, true);
+    }
     this.self.setFormSorguQuery();
 };
 
@@ -130,6 +164,13 @@ TCSDatasets.prototype.afterModulFormLoad = function() {
                 this.formlar[a].mdkey = 99999;
         }
     }
+    /*
+    this.userForm = this.userForm.sort((a, b) => {
+        if (a.baslik < b.baslik) {
+          return -1;
+        }
+      });    
+      */
 };
 
 TCSDatasets.prototype.modulFormLoad = function(dataset, ismodul, sarray, isreport, isshortcut) {
@@ -181,11 +222,11 @@ TCSDatasets.prototype.datasetToModulForm = function(dset, ismodul, isreport, iss
         modulform.ww = dset.FieldByName("WIDTH").getValue();
         modulform.wh = dset.FieldByName("HEIGHT").getValue();
         modulform.renk = dset.FieldByName("RENK").getValue();
+        modulform.raporadi = dset.FieldByName("RAPORADI").getValue();
 
         if (!isshortcut) {
             modulform.isshortcut = false;
             modulform.params = dset.FieldByName("PARAMS").getValue();
-            modulform.raporadi = dset.FieldByName("RAPORADI").getValue();
             modulform.disBaglanti = dset.FieldByName("ERISIMADRESI").getValue();
             modulform.disBaglantiOk = (isPresent(modulform.disBaglanti) && modulform.disBaglanti != "");
             modulform.yeniSayfa = dset.FieldByName("YENISAYFA").getValue();
@@ -200,7 +241,7 @@ TCSDatasets.prototype.datasetToModulForm = function(dset, ismodul, isreport, iss
             }
         } else if (isshortcut) {
                 modulform.isshortcut = true;
-                modulform.mdkey = 99998;
+                modulform.mdkey = paramShortcutMdKey;
                 modulform.baslik = dset.FieldByName("MENUTEXT").getValue();
                 modulform.basliktr = dset.FieldByName("MENUTEXT").getValue();
             }
@@ -210,8 +251,9 @@ TCSDatasets.prototype.datasetToModulForm = function(dset, ismodul, isreport, iss
             modulform.iconname = "sf-printer";
         }
 
-        if (modulform.raporadi != "" && modulform.fr_key == "240" && isreport) {
+        if (modulform.raporadi != "" && modulform.fr_key == "240") {
             this.isReportExist = true;
+            modulform.iconname = "sf-printer";
         } else 
             if (isreport && (modulform.raporadi == "") && (modulform.fr_key != "240")) {
                 return null; // Rapor içeriğinde gelip rapor parametreleri uygun değil!
@@ -231,23 +273,23 @@ TCSDatasets.prototype.datasetToModulForm = function(dset, ismodul, isreport, iss
 
 function TCSMenuColorStyle(item, style) {
     this.selectedColorDark = "rgba(0, 0, 0, 0.32)";
-    
     if (mobileAndTabletCheck())
         this.selectedColorDark = "rgb(0 120 212)";
-
     this.selectOverColorDark = "rgb(0 0 0 / 14%)";
     
     this.selectOverColorLight = "rgb(0, 120, 212)";
     this.selectedColorLight = this.selectOverColorLight;
-
+    
     this.selectedColorLastOpenLight = "#FDEDBA";
-
     this.selectFontColorDark = "black";
     this.selectFontColorWhite = "white";
-
     this.defaultBackColor = "transparent";
     this.defaultFontColor = "white";
     this.defaultBackColorFrmRap = "rgb(204 212 219 / 60%)";
+    
+    this.searchBackColor = "rgba(204,232,255,255)";
+    this.searchBorderColor = "rgba(159,205,242,255)";
+    
     this.style = style;
     this.menuItem = item;
 };
@@ -284,8 +326,7 @@ TCSMenuColorStyle.prototype.mouseLeave = function() {
     }
 };
 
-TCSMenuColorStyle.prototype.setEnable = function(s) {
-};
+TCSMenuColorStyle.prototype.setEnable = function(s) {};
 
 TCSMenuColorStyle.prototype.initMenuItemStyle = function() {
     if (this.menuItem.getFormIsOpened()) {
@@ -299,22 +340,15 @@ TCSMenuColorStyle.prototype.initMenuItemStyle = function() {
 
 TCSMenuColorStyle.prototype.setItemFontColor = function(f) {
     this.menuItem.lblC.style.color = f;
-    this.menuItem.lblIco.style.color = f; //"#00000082";
+    this.menuItem.lblIco.style.color = f; 
 };
 
 function getIconDiv(classname, fontsize, color) {
     var ico = document.createElement('div');
-    ico.className = classname;
-    ico.style.position = "relative";
-    ico.style.display = "flex";
-    ico.style.background = "transparent"; 
-    ico.style.fontSize = "24px";
+    ico.className = classname + " wtmIconItem";
     if (isPresent(fontsize)) {
         ico.style.fontSize = fontsize;
     }
-    ico.style.padding = "2px";
-    ico.style.margin = "2px";
-    ico.style.cursor = "pointer";
     if (isPresent(color)) {
         ico.style.color = color;
     }
@@ -407,11 +441,18 @@ TCSMenuItem.prototype.setItemOrder = function(i) {
     this.order = i;
 };
 
+TCSMenuItem.prototype.isLeftMenu = function(i) {
+    return (this.group.isMenuTypeLeft());
+};
+
 var beforeTop = 0;
 
-TCSMenuItem.prototype.setSelected = function(s, keycode) {
-    this.selected = s;
 
+TCSMenuItem.prototype.setSelected = function(s, keycode) {
+    if (isPresent(this.icoShortCut))
+        this.icoShortCut.style.visibility =  s ? "visible" : "hidden";
+
+    this.selected = s;
     if (keycode == 0) {
     }  else {
         var rect = this.el.getBoundingClientRect();
@@ -441,10 +482,7 @@ TCSMenuItem.prototype.setSelected = function(s, keycode) {
                             this.parent.scrollTop = newT ;
                     }
                 }
-
-
             }
-          
         }
     }
     this.menuColorStyle.select();
@@ -485,18 +523,7 @@ TCSMenuItem.prototype.setMenuItemVertical = function() { // TODO
 
 TCSMenuItem.prototype.initMenuItem = function() {
     this.el = document.createElement('div');
-    this.el.style.position = "relative";
-    this.el.style.display = "flex";
-    this.el.style.width = "100%";
-    this.el.style.height = "38px";
-    this.el.style.overflow = "hidden";
-    this.el.style.boxSizing =  "border-box";
-    this.el.style.padding = "4px";
-    this.el.style.margin = "4px";
-    this.el.style.borderRadius = "6.5px";
-    this.el.style["align-items"] = "center";
-    this.el.style.cursor = "pointer";
- 
+    this.el.className =  "wtmMenuItem";
     var self_ = this;
     this.el.onmouseover = function () {
         self_.menuColorStyle.mouseOver();
@@ -507,10 +534,10 @@ TCSMenuItem.prototype.initMenuItem = function() {
     };
 
     this.el.onclick = function (e) {
-        if (!self_.selected)
+        if (!self_.isLeftMenu() || (!self_.selected)) 
             self_.group.setSelected(self_.order, self_, true);
     };
-
+    
     this.initItemCaption();
     this.parent.appendChild(this.el);
 };
@@ -522,39 +549,42 @@ function setHighlightText(item, text) {
 
     var innerHTML = "";
     var tmpStr = item.innerHTML;
+    var beforeIndexOf = -1;
+    
+    //console.log("spllit count:" + aranansplit.length) ;
+    
     for (var bb = 0; bb < aranansplit.length; bb++) { 
-        var arananText = aranansplit[bb];
-        var bulIndex = tmpStr.toLowerCase().indexOf(arananText.toLowerCase());
-        var devam = (bulIndex > -1); 
-        if ((devam)) {
-            innerHTML += "<span>" + tmpStr.substring(0, bulIndex).replaceAll(" ","&nbsp;") + "</span>" + 
-                         "<span style='background-color:#ffd700; color:black;'>" + tmpStr.substring(bulIndex, bulIndex + arananText.length) + "</span>";
-            tmpStr = tmpStr.substring(bulIndex + arananText.length);
-        }  
-        if (bb + 1 == aranansplit.length)
-            innerHTML += "<span>" + tmpStr.replaceAll(" ","&nbsp;") + "</span>";
+       var arananText = aranansplit[bb];
+       if (arananText != "") {
+           var bulIndex = isSearchTextExistPosition(arananText, tmpStr, null, beforeIndexOf);
+           var devam = (bulIndex > -1);  
+           if ((devam)) {
+              innerHTML += "<span>" + tmpStr.substring(0, bulIndex).replaceAll(" ","&nbsp;") + "</span>" + 
+                           "<span style='font-weight:bold; font-size:13px'>" + tmpStr.substring(bulIndex, bulIndex + arananText.length) + "</span>";
+              tmpStr = tmpStr.substring(bulIndex + arananText.length);
+             beforeIndexOf = bulIndex;
+           }  
+       }
+       if (bb + 1 == aranansplit.length)
+         innerHTML += "<span>" + tmpStr.replaceAll(" ","&nbsp;") + "</span>";
     }
     item.innerHTML = innerHTML;
 }
  
 TCSMenuItem.prototype.initItemCaption = function() {
     this.lblC = document.createElement('div');
-    this.lblC.style.position = "relative";
-    this.lblC.style.display = "flex";
-    this.lblC.style.fontSize = "13px";
-    this.lblC.style.marginLeft = "6px";
-    this.lblC.style["flex-wrap"] = "wrap";
-    this.lblC.style.overflow = "none";
-    if (this.group.isMenuTypeLeft())
+    this.lblC.className = "wtmCaptionItem";
+
+    if (this.isLeftMenu())
         this.lblC.style["text-shadow"] = "0 0 4px rgb(0 0 0 / 60%)";
 
     var ekleCaption = this.caption;
-    if (this.group.isMenuTypeLeft() && (ekleCaption.length > 45))
+    if (this.isLeftMenu() && (ekleCaption.length > 45))
         ekleCaption = ekleCaption.substring(0,45) + "..";
     
-    var isNoCaption = (mobileAndTabletCheck() && this.group.isMenuTypeLeft());
+    var isNoCaption = (mobileAndTabletCheck() && this.isLeftMenu());
     if (!isNoCaption)
-        setDOMText(this.lblC, ekleCaption);
+        setDOMText(this.lblC, ekleCaption); 
         
     if (isPresent(this.group) && isPresent(this.group.mainMenu)) {
         var araText = this.group.mainMenu.getAraText();
@@ -568,12 +598,27 @@ TCSMenuItem.prototype.initItemCaption = function() {
     this.el.appendChild(this.lblIco);
     this.el.appendChild(this.lblC);
 
-    if (this.group.isMenuTypeLeft())
+    if (this.isLeftMenu())
         this.lblIco.style["text-shadow"] = "0 0 4px rgb(0 0 0 / 40%)";
 
-
-    if (isPresent(this.modulform.fr_key))
+    if (isPresent(this.modulform.md_fr_key))
         this.el.title = this.caption + " / " + this.modulform.md_fr_key;
+
+    if (!mobileAndTabletCheck() && (this.isLeftMenu()) && (this.modulform.mdkey == paramShortcutMdKey)) {
+        this.icoShortCut = getIconDiv("sf-folder-open-o");
+        this.icoShortCut.style.visibility = "hidden";
+        this.icoShortCut.style.margin = "0px 4px 0px auto";
+        this.icoShortCut.style.color = "white";
+        this.icoShortCut.style.cursor = "pointer";
+        this.icoShortCut.style.fontSize = "17px";
+        this.icoShortCut.title = this.owner.datasets.sbt_kisayolT;
+        this.icoShortCut.owner = this.owner;
+        this.icoShortCut.onclick = function (e) {
+            this.owner.setMenuKapat();
+            ActiveForm.OpenModal(55);
+        };
+        this.el.appendChild(this.icoShortCut); 
+    }
 };
 
 function getNewItem(owner, modul) {
@@ -610,33 +655,42 @@ TCSMenuGroup.prototype.setEndSettings = function(colcount, colorstyle) {
         this.setColorStyle(colorstyle);
 };
 
+function getRibbonColor(mdkey) {
+    var COLOR_BLUE = "rgb(0, 120, 212)";
+    var COLOR_GREEN = "#04AA6D";
+    var COLOR_RED = "#de3163";
+    if (mdkey == paramShortcutMdKey) {
+        return COLOR_GREEN;
+    } else 
+        return COLOR_BLUE;
+};
+
 TCSMenuGroup.prototype.setCaption = function(modulform, issearch) {
     this.caption = modulform.baslik;
     if (this.elCaptionParent == null) {
         this.elCaptionParent = document.createElement('div');
-        this.elCaptionParent.style.position = "relative";
-        this.elCaptionParent.style.display = "flex";
-        this.elCaptionParent.style.width = "100%";
-        this.elCaptionParent.style.boxSizing =  "border-box";
-        this.elCaptionParent.style.padding = "2px";
-        this.elCaptionParent.style.margin = "2px";
-        this.elCaptionParent.style.marginBottom = "5px";
-        this.elCaptionParent.style.alignItems = "flex-end";
-        this.elCaptionParent.style.height = "38px";
+        this.elCaptionParent.className = "wtmCaptionParent";
 
         this.elCaptionParent2 = document.createElement('div');
         this.elCaptionParent2.className = "ribbon-container";
-
+        
         this.elCaptionParent.appendChild(this.elCaptionParent2);
 
         this.elCaption = document.createElement('div');
         this.elCaption.className = "ribbon-text";
+
         setDOMText(this.elCaption, this.caption);
+        
         this.elCaptionParent2.appendChild(this.elCaption);
         this.elCaption.style.fontSize = "13px !important";
         
-       if (issearch==false) 
-           this.parent.appendChild(this.elCaptionParent);
+       if (issearch==false) {
+            this.parent.appendChild(this.elCaptionParent);
+       }
+
+       var selectColor = getRibbonColor(modulform.mdkey);
+       this.elCaptionParent2.style.setProperty('--selectcolor', selectColor);
+       this.elCaption.style.setProperty('--selectcolor', selectColor);
     }
 };
 
@@ -674,7 +728,9 @@ TCSMenuGroup.prototype.setSelected = function(order, item) {
             this.mainMenu.setLeftMenuFromOrder(order);
             break;
         } else 
-        if ((this.menuType == menuTypeRight) && (kontrolItem.modulform.fr_key == item.modulform.fr_key) ) {
+
+      
+        if ((this.menuType == menuTypeRight) && (kontrolItem.modulform.md_fr_key == item.modulform.md_fr_key) ) {
             findItem = kontrolItem;
             break;
         } 
@@ -688,10 +744,14 @@ TCSMenuGroup.prototype.setSelected = function(order, item) {
 TCWebtopAnaMenu.prototype = new TCControlBase();
 
 function TCWebtopAnaMenu() {
+    var astyle = getCssClasses();
+    document.getElementsByTagName('head')[0].appendChild(astyle);
+
     this.parent = null;
     this.owner = null;
     this.classAdi = "TCWebtopAnaMenu";
     this.setControlName(this.classAdi);
+    
     this.datasets = new TCSDatasets();
     this.isVisible = false;
     this.elBack = document.createElement('div'); 
@@ -699,7 +759,6 @@ function TCWebtopAnaMenu() {
     this.elBack.style.backgroundColor ="rgb(0 0 0 / 22%)";
     this.elBack.style.boxSizing = "border-box";
     this.elBack.isParent = this;
-    this.elBack.addEventListener("click", this.backOnClick);
     this.elBack.style.display = "none";
 
     this.setBackPanelUpdate();
@@ -707,7 +766,6 @@ function TCWebtopAnaMenu() {
     // el objesi TCControlBase'den kalıtım ile geliyor. 
     this.el.style.position = "absolute";
     this.el.className = "frmmodal";
-    //this.el.style.borderRadius = "10px";
 
     if (mobileAndTabletCheck()) {
         this.el.style.height = makePX(ActiveForm.getClientHeight()-61);
@@ -715,7 +773,9 @@ function TCWebtopAnaMenu() {
     } else {
         this.el.style.height = "700px";
         this.el.style.width = "900px";
+        //this.el.style.height = makePX(ActiveForm.getClientHeight()-40);
     }
+    this.isFullScreen = false;
             
     this.el.style.backgroundColor ="transparent";
     this.el.creator = this;
@@ -733,11 +793,14 @@ function TCWebtopAnaMenu() {
     this.el.isowner = this;
     this.el.isDown = false;
     this.el.cursor = {x1: 0, y1: 0};
+    
     var self_ = this.el;
+    var self = this;
     
     function onControlMouseDown(event) {
         event.preventDefault();
         if (isPresent(event.target.tagName) && (event.target.tagName == "DIV")) {
+            self.elBack.removeEventListener("click", self.backOnClick);
             self_.isDown = true;
             self_.cursor.x1 = event.clientX - self_.offsetLeft;
             self_.cursor.y1 = event.clientY - self_.offsetTop;
@@ -748,9 +811,10 @@ function TCWebtopAnaMenu() {
 
     function onControlMouseUp(event) {
         event.preventDefault();
-        if (isPresent(self_)) 
+        if (isPresent(self_)) {
             self_.isDown = false;
-            
+            self.endOfMove();
+        }
     };
     
     window.addEventListener('mouseup', function(evt) {
@@ -785,6 +849,7 @@ function TCWebtopAnaMenu() {
         }
     }
 
+   
     if (!mobileAndTabletCheck()) {
         this.el.onmousemove = onControlMouseMove;
         this.el.onmouseup = onControlMouseUp;
@@ -799,15 +864,31 @@ function TCWebtopAnaMenu() {
     this.addList = [];
     this.groupList = [];
     this.itemIdOrder = 1;
-    this.isFullScreen = false;
     this.menuActive = true; 
+    this.araToplamSonuc = 0;
 };
- 
+
+TCWebtopAnaMenu.prototype.endOfMove = function() {
+    this.elBack.addEventListener("click", this.backOnClick);
+    this.owner.changeAnamenuLeftTop( this.getLeft() , this.getTop());
+    this.tiFullScreen.className = "sf-expand" + " wtmIconItem";
+};
+
+TCWebtopAnaMenu.prototype.setUserMenuLeftTop = function() {
+    var lefttop = this.owner.getAnamenuLeftTop();
+    if (isPresent(lefttop)) {
+        lefttop = lefttop.split(",");
+        if (isNumeric(lefttop[0])) this.el.style.left = makePX(lefttop[0]);
+        if (isNumeric(lefttop[1])) this.el.style.top = makePX(lefttop[1]);
+    }
+};
+
 TCWebtopAnaMenu.prototype.setOwner = function(o) {
     this.owner = o;
     this.owner.AddControl(this);
     this.setParent(this.owner); 
     this.datasets.setOwner(this); 
+    this.setUserMenuLeftTop();
 };
 
 TCWebtopAnaMenu.prototype.getVisible = function() {
@@ -818,14 +899,20 @@ TCWebtopAnaMenu.prototype.getLeft = function() {
     return parseInt(this.el.style.left);
 };
 
+TCWebtopAnaMenu.prototype.getTop = function() {
+    return parseInt(this.el.style.top);
+};
+
 TCWebtopAnaMenu.prototype.setBackCssControlUptate = function(isactive) {
     if (!isactive) 
         this.leftSideParent.style.backgroundColor ="rgb(77 89 100 / 71%)"; 
         else         
             this.leftSideParent.style.backgroundColor ="rgb(201 201 201 / 23%)";
+    
     if (isNotCssSupport()) {
         this.leftSideParent.style.backgroundColor ="rgb(77 89 100)";
-    }            
+    }  
+    this.leftSideParent.style["backdrop-filter"] = "saturate(180%) blur(25px)";
 };
 
 TCWebtopAnaMenu.prototype.setBackPanelUpdate = function() {
@@ -847,6 +934,10 @@ TCWebtopAnaMenu.prototype.setBackPanelUpdate = function() {
             } else 
                 this.setBackCssControlUptate(true);
         }
+    }
+    
+    if ((this.getLeft() > 5) && (this.getTop() > 5)) {
+        this.borderRadiusChangeFL(true);
     }
 };
 
@@ -898,8 +989,9 @@ TCWebtopAnaMenu.prototype.initLeftSide = function () {
     this.leftSideParentBase = document.createElement('div'); 
     this.leftSideParentBase.style.position = "relative";
     this.leftSideParentBase.style.boxSizing = "border-box";
-    this.leftSideParentBase.style.backgroundColor ="#00000029";
+    this.leftSideParentBase.style.backgroundColor = "#00000029";
     this.leftSideParentBase.style.borderRadius = "10px";
+
     if (mobileAndTabletCheck()) 
         this.leftSideParentBase.style.width = "82px";
         else     
@@ -921,9 +1013,6 @@ TCWebtopAnaMenu.prototype.initLeftSide = function () {
     this.leftSideParent.style.paddingRight = "10px";
     this.leftSideParent.onclick = null;
     
-    this.leftSideParent.style["-webkit-backdrop-filter"] = "saturate(180%) blur(25px)";
-    this.leftSideParent.style["backdrop-filter"] = "saturate(180%) blur(25px)";
-    
     var border = "2px solid rgb(161 161 161 / 18%)";
     this.leftSideParent.style.borderLeft = border;
     this.leftSideParent.style.borderTop = border;
@@ -941,8 +1030,8 @@ TCWebtopAnaMenu.prototype.initLeftSide = function () {
     if (!mobileAndTabletCheck()) {
         var imgParent = document.createElement('div'); 
         imgParent.style.position = "relative";
+        imgParent.style.marginTop = "5px";
         this.leftSideParent.appendChild(imgParent);
-
         this.sisoftLogo = document.createElement('img'); 
         this.sisoftLogo.style.position = "relative";
         this.sisoftLogo.style.paddingLeft = "10px";
@@ -954,23 +1043,9 @@ TCWebtopAnaMenu.prototype.initLeftSide = function () {
 
 TCWebtopAnaMenu.prototype.getToolsLabel = function(isactive, mtype) {
     var tblLabel = document.createElement('div'); 
-    tblLabel.style.fontSize = "14px";
-    tblLabel.style.color = "white";
-    tblLabel.style.whiteSpace = "nowrap";
-    if (!mobileAndTabletCheck()) 
-        tblLabel.style.padding = "0.12em 0.9em 0.14em 1.1em";
-
-    tblLabel.style.margin = "1px 1px 7px 0px";
-    tblLabel.style.textAlign = "center";
-    tblLabel.style.display = "flex";
-    tblLabel.style.flexDirection = "row-reverse";
-    tblLabel.style.verticalAlign = "baseline";
-    tblLabel.style.position = "relative";
-    tblLabel.style.borderRadius = "4px";
-    tblLabel.style.alignItems = "center";
-    tblLabel.style.cursor = "pointer";
-    tblLabel.style.boxSizing =  "border-box";
-    tblLabel.style["text-shadow"] = "0 0 4px rgb(0 0 0 / 60%)";
+    tblLabel.className = "wtmMenuLabel";
+    if (mobileAndTabletCheck()) 
+        tblLabel.style.padding = "unset";
     tblLabel.menuListType = mtype;
     tblLabel.isActive = true;
     var self_ = this;
@@ -1010,9 +1085,8 @@ TCWebtopAnaMenu.prototype.leftTopToolsIcons = function() {
     this.sparentR.style.display = "flex";
     this.sparentR.style.width = "100%";
     this.sparentR.style.height = "36px";
-    if (!mobileAndTabletCheck()) 
-        this.sparentR.style.marginLeft = "7px";
-
+    this.sparentR.style["justify-content"] = "center";
+    
     this.sparentR.style.boxSizing = "border-box";
     this.leftSideParent.appendChild(this.sparentR);
 
@@ -1055,6 +1129,8 @@ TCWebtopAnaMenu.prototype.leftTopToolsIcons = function() {
 var searchTextSelectColor = "#eeeeeed9";
 var searchTextDefaultColor = "#eeeef0";
 
+
+
 TCWebtopAnaMenu.prototype.initSearchText = function () { 
     this.initSearchParent = document.createElement('div'); 
     this.initSearchParent.style.position = "relative";
@@ -1067,29 +1143,23 @@ TCWebtopAnaMenu.prototype.initSearchText = function () {
     
     this.rightSideParent.appendChild(this.initSearchParent);
     if (!mobileAndTabletCheck()) {
-        var iconToolsPanel1 = this.getToolIcoBack();
+        var iconToolsPanel1 = getToolIcoBack();
         iconToolsPanel1.style["flex-direction"] = "unset";
+        iconToolsPanel1.style.width = "34px";
         this.initSearchParent.appendChild(iconToolsPanel1);
 
-        this.tiHizliAc = getIconDiv("sf-z-sort-amount-down","20px" , "#00000080");
+        this.tiHizliAc = getIconDiv("sf-z-sort-amount-down","24px" , "#00000080");
         this.tiHizliAc.self = this;
+        this.tiHizliAc.title = this.datasets.sbt_sonkullan;
         this.tiHizliAc.onclick = function (e) {
             this.self.sonKullanilanGoster();
         };
-
         iconToolsPanel1.appendChild(this.tiHizliAc);
-        var shortCutIcon = getIconDiv("sf-shortcut", "20px", "#00000080");
-        shortCutIcon.self = this;
-        shortCutIcon.onclick = function (e) {
-            this.self.setMenuKapat();
-            ActiveForm.OpenModal(55);
-        };
-        iconToolsPanel1.appendChild(shortCutIcon);
     }
 
-    this.initSearchTextParent =  document.createElement('div'); 
+    this.initSearchTextParent = document.createElement('div'); 
     this.initSearchTextParent.style.position = "relative";
-    this.initSearchTextParent.style.backgroundColor = searchTextDefaultColor; //"rgba(201, 201, 201, 0.23)";
+    this.initSearchTextParent.style.backgroundColor = searchTextDefaultColor; 
     this.initSearchTextParent.style.display = "flex";
     this.initSearchTextParent.style.width = "100%";
     this.initSearchTextParent.style.height = "100%";
@@ -1102,7 +1172,7 @@ TCWebtopAnaMenu.prototype.initSearchText = function () {
     
     // Edit icerisindeki iconlar
     this.menuLabelIcon = getIconDiv("sf sf-search","20px");
-    this.menuLabelIcon.style.marginRight = "5px";
+    this.menuLabelIcon.style.margin = "5px";
     this.menuLabelIcon.style.color = "#7f7f81";
     this.menuLabelIcon.style.transition = "all .3s cubic-bezier(.4,0,.2,1)";
     this.menuLabelIcon.style.transform = "scale(.8)";    
@@ -1113,6 +1183,7 @@ TCWebtopAnaMenu.prototype.initSearchText = function () {
     this.aramaText1.setOwner(ActiveForm);
     this.aramaText1.setParent(ActiveForm); 
     this.initSearchTextParent.appendChild(this.aramaText1.el);
+
     this.aramaText1.el.style.position = "relative";
     this.aramaText1.el.style.width = "100%";
     this.aramaText1.el.style.left = "auto";
@@ -1120,16 +1191,14 @@ TCWebtopAnaMenu.prototype.initSearchText = function () {
     this.aramaText1.el.style.background = "transparent";
     this.aramaText1.el.style.border = "none";
     this.aramaText1.el.style.color = "#7f7f81";
-    
     this.aramaText1.el.style.boxSizing = "border-box";
     this.aramaText1.el.style.display = "block";
     this.aramaText1.el.style.outline = "none";
-    
-    this.aramaText1.el.placeholder = this.datasets.sbt_search;
     this.aramaText1.setFontSize(15);
     this.aramaText1.setNoStyleChange(true);
     this.aramaText1.setKeyUp(this.searchKeyUp);
     this.aramaText1.setKeyDown(this.searchKeyDown);
+    this.aramaText1.el.placeholder = this.datasets.sbt_search;
 
     this.aramaText1.self = this;
 
@@ -1150,19 +1219,24 @@ TCWebtopAnaMenu.prototype.initSearchText = function () {
     this.aramaSilIcon1.style.alignItems = "center";    
     this.aramaSilIcon1.style.visibility = "hidden";
     this.aramaSilIcon1.onclick = function (e) {
-        self_.searchEditClear();
+        self_.searchEditFocusClear(true);
     };
 
     this.initSearchTextParent.appendChild(this.aramaSilIcon1);
     
     if (!mobileAndTabletCheck()) {
-        var iconToolsPanel2 = this.getToolIcoBack();
-        var tiFullScreen = getIconDiv("sf-expand", "18px", "#00000080");
-        tiFullScreen.style.width = "24px";
-        tiFullScreen.onclick = function (e) {
+        var iconToolsPanel2 = getToolIcoBack();
+        this.tiFullScreen = getIconDiv("sf-expand", "18px", "#00000080");
+        this.tiFullScreen.style.width = "24px";
+        this.tiFullScreen.onclick = function (e) {
+            if (self_.isFullScreen == false) 
+                this.className = "sf-shrink" + " wtmIconItem";
+                else 
+                    this.className = "sf-expand" + " wtmIconItem";
+                    
             self_.setTamEkran();
         };
-        iconToolsPanel2.appendChild(tiFullScreen);
+        iconToolsPanel2.appendChild(this.tiFullScreen);
         tiCloseIcon = getIconDiv("sf-cross", "16px", "#00000080");
         tiCloseIcon.onclick = function (e) {
             self_.setMenuKapat(true) ;
@@ -1172,23 +1246,12 @@ TCWebtopAnaMenu.prototype.initSearchText = function () {
     }
 };
 
-TCWebtopAnaMenu.prototype.getToolIcoBack = function() {
-    var toolIcoBack = document.createElement('div'); 
-    toolIcoBack.style.position = "relative";
-    toolIcoBack.style.backgroundColor = "transparent"; 
-    toolIcoBack.style.display = "flex";
-    toolIcoBack.style["align-items"] = "center";
-    toolIcoBack.style.width = "65px";
-    toolIcoBack.style.height = "100%";
-    toolIcoBack.style.boxSizing = "border-box";
-    toolIcoBack.style.padding = "4px 2px 4px";
-    return toolIcoBack;
-};
-
-TCWebtopAnaMenu.prototype.searchEditClear = function() {
+TCWebtopAnaMenu.prototype.searchEditFocusClear = function(isclear) {
     this.aramaText1.setCaption("");
-    this.searchAktifPasif(false);
-    this.araQueryRun();
+    if (isclear) {
+        //this.searchAktifPasif(true);
+        this.araQueryRun();
+    }
     this.aramaText1.setFocus();
 };
 
@@ -1234,14 +1297,7 @@ TCWebtopAnaMenu.prototype.addSpaceDiv = function(prnts, h, isline) {
 TCWebtopAnaMenu.prototype.getMenusParent = function() {
     var menuParent =  new TCControlBase();
     this.setControlName("menuParent");
-    menuParent.el.className = "customScrolls";
-    menuParent.el.style.position = "relative";
-    menuParent.el.style.padding = "2px";
-    menuParent.el.style.display = "flex";
-    menuParent.el.style["flex-direction"] = "row";
-    menuParent.el.style["flex-wrap"] = "wrap";
-    menuParent.el.style.overflow = "auto";
-    menuParent.el.style["align-content"] = "flex-start";
+    menuParent.el.className = "customScrolls" + " " + "wtmMenuParent";
     menuParent.setTabIndex(0);
     menuParent.el.style.outline = "none";
     return menuParent.el;
@@ -1253,7 +1309,7 @@ TCWebtopAnaMenu.prototype.getMenuHeight = function() {
 
 TCWebtopAnaMenu.prototype.initLeftSideMenus = function() {
     this.lsParentL = this.getMenusParent();
-    this.lsParentL.style.height = makePX( this.getMenuHeight() - 110 );
+    this.lsParentL.style.height = makePX(this.getMenuHeight() - 110);
     this.leftSideParent.appendChild(this.lsParentL);    
     this.lmGroupL = new TCSMenuGroup(this, this.lsParentL, menuTypeLeft);
     
@@ -1358,26 +1414,23 @@ TCWebtopAnaMenu.prototype.initRightSideParent = function() {
 
 TCWebtopAnaMenu.prototype.setInitSearchNoItemPanel = function() {
     this.noItemFoundParent = document.createElement('div');
-    this.noItemFoundParent.setAttribute('style', "position:relative; color:#101010cc; font-weight:bold;  display:flex; flex-wrap:wrap; align-content :flex-start; font-family:monospace !important;" );
-    this.noItemFoundParent.style.display = "none";
+    this.noItemFoundParent.className = "wtmItemNotFound";
     this.noItemFoundParent.style.height = makePX(this.getHeight()-114);
-    this.noItemFoundParent.style.background = "white";
-    this.noItemFoundParent.style.borderRadius = "10px";
-    this.noItemFoundParent.style.fontSize = "16px";
-    this.noItemFoundParent.style["place-content"] = "space-around";
-    this.noItemFoundParent.style["flex-direction"] = "column-reverse";
-    this.noItemFoundParent.style["justify-content"] = "center";
-
+    
     this.rightSideParent.appendChild(this.noItemFoundParent);    
     setDOMText(this.noItemFoundParent, this.datasets.sbt_searchu);
-    this.searchlblIco = getIconDiv("sf-z-car-crash","90px");
+    this.searchlblIco = getIconDiv("sf-magnifying-glass","90px");
+    this.searchlblIco.style["justify-content"] = "center";
     this.noItemFoundParent.appendChild(this.searchlblIco);
-    this.searchlblIco.style.color = "#101010cc";
+    this.searchlblIco.style.color = "rgb(54 54 54 / 50%)";
 };
 
 TCWebtopAnaMenu.prototype.setNotResultInfo = function(noresult) {
     if (noresult) {
         this.noItemFoundParent.style.display = "flex";
+        this.noItemFoundParent.style["place-content"] = "space-around";
+        this.noItemFoundParent.style["flex-direction"] = "column-reverse";
+        this.noItemFoundParent.style["justify-content"] = "center";
         this.lsParentR.style.display = "none";
     } else {
         this.noItemFoundParent.style.display = "none";
@@ -1394,7 +1447,6 @@ TCWebtopAnaMenu.prototype.getModul = function(mdkey) {
 };
 
 TCWebtopAnaMenu.prototype.searchKeyDown = function(keyCode, ctrlKey, shiftKey, altKey, oEvent) {
-    
     if ((keyCode == VK_RETURN) && isPresent(this.self.isSelectedItem)) {
         this.self.setFormSelect(this.self.isSelectedItem.modulform);
         return keyStop(oEvent);
@@ -1417,7 +1469,7 @@ TCWebtopAnaMenu.prototype.searchKeyUp = function(keyCode, ctrl, shift) {
         if (!this.self.getAraTextActive())
             this.self.setMenuKapat(true);
         else {
-            this.self.searchEditClear();
+            this.self.searchEditFocusClear(true);
             this.self.searchAktifPasif(true);
         }
      } else
@@ -1448,7 +1500,41 @@ TCWebtopAnaMenu.prototype.getAraText = function() {
     return "";
 };
 
+function getIndexUpperLower(first,second,isupper) {
+    var lang = "tr";
+    if (MostParentWindow.CalisilanDil != "TR")
+        lang = "en-US";
+    if (isupper) 
+        return first.toLocaleUpperCase(lang).indexOf(second.toLocaleUpperCase(lang));
+    else 
+        return first.toLocaleLowerCase(lang).indexOf(second.toLocaleLowerCase(lang));
+};
+
+function isSearchTextExistPosition(aranan, primary, second, beforeindx) {
+    if (beforeindx > -1) {
+        aranan = " " + aranan;
+    }
+        
+    var reIndex = getIndexUpperLower(primary, aranan, true);
+    if (reIndex == -1)
+        reIndex = getIndexUpperLower(primary, aranan, false);
+    if (isPresent(second) && (reIndex == -1) && (MostParentWindow.CalisilanDil != "TR")) {
+        reIndex = getIndexUpperLower(second, aranan, true);
+        if (reIndex == -1)
+            reIndex = getIndexUpperLower(second, aranan, false);
+    }
+    if ((reIndex > -1) && (reIndex < beforeindx)) {
+        return -1;
+    }
+    
+    if ((beforeindx > -1) && (reIndex > -1)) {
+        reIndex = reIndex + 1;
+    }
+    return reIndex;
+};
+
 TCWebtopAnaMenu.prototype.araQueryRun = function() {
+    this.araToplamSonuc = 0;
     var aranan = this.aramaText1.getCaption();
     var lc = MostParentWindow.CalisilanDil;
     var text = toLatinUtil(aranan);
@@ -1484,17 +1570,19 @@ TCWebtopAnaMenu.prototype.araQueryRun = function() {
         this.datasets.getFormReport()[ii].isFind = false;
         var devam = true; 
         if (arananNumeric) {
-            devam = (form.fr_key == aranan);
+            devam = (form.md_fr_key == aranan);
         } else {
+            var isExistCount = 0;
+            var beforeIndexOf = -1;
             for (var bb = 0; bb < aranansplit.length; bb++) { 
-                var baslik = form.baslik; 
-                devam = devam && (baslik.toLowerCase().indexOf(aranansplit[bb].toLowerCase()) > -1);
-                var isTr = (MostParentWindow.CalisilanDil == "TR");
-                if ((!isTr) && !devam) {
-                    baslik = form.basliktr; 
-                    devam = (baslik.toLowerCase().indexOf(aranansplit[bb].toLowerCase()) > -1);
+                var tmpIndex = isSearchTextExistPosition(aranansplit[bb], form.baslik, form.basliktr, beforeIndexOf);
+                if (tmpIndex > -1) {
+                    beforeIndexOf = tmpIndex;
                 }
+                if (tmpIndex > -1)
+                    isExistCount += 1;
             }
+            devam = (isExistCount == aranansplit.length);
         }
 
         if (devam)  {
@@ -1510,6 +1598,7 @@ TCWebtopAnaMenu.prototype.araQueryRun = function() {
     }
 
     if (mdKeys.length > 0) {
+        this.araToplamSonuc = mdKeys.length;
         this.initRightSideParent();
         for (var i=0; i < mdKeys.length; i++) {
             var modul = this.getModul(mdKeys[i]);
@@ -1554,7 +1643,6 @@ TCWebtopAnaMenu.prototype.initRightSideMenus = function(modulform, issearch) {
 };
 
 TCWebtopAnaMenu.prototype.initKontrolFormItems = function(mdkey, modul, issearch, issonkullan, isgroup) {
-
     var group = null; 
     if (isgroup != null)
         group = isgroup;
@@ -1668,18 +1756,39 @@ TCWebtopAnaMenu.prototype.getLastFolder = function(mdkey) {
 TCWebtopAnaMenu.prototype.setTamEkran = function() {
     if (this.isFullScreen == false) {
         this.el.style.height = makePX(ActiveForm.getClientHeight()-40);
-        this.el.style.top = "0px"; //Taşımaya başladığında.. 700 px
+        this.el.style.top = "0px"; 
         this.el.style.left = "0px";
         this.borderRadiusChangeFL(false);
     } else {
         this.el.style.height = makePX(700);
     }
     this.isFullScreen = !this.isFullScreen;
-    this.lsParentL.style.height = makePX(this.getMenuHeight() - 110);
+    this.lsParentL.style.height = makePX(this.getMenuHeight()-110);
     this.lsParentR.style.height = makePX(this.getHeight()-104);
+    
+    this.setScreenUpdateTimer();
+};
+
+TCWebtopAnaMenu.prototype.setScreenUpdateTimer = function() {
+    var navigtr = navigator.userAgent.split('Chrome/')[1];
+    if (navigtr != null) {
+        this.leftSideParent.style.backgroundColor ="rgb(77 89 100)";
+        this.leftSideParent.style["backdrop-filter"] = "inherit";
+        this.leftSideParent.style["-webkit-backdrop-filter"] = "inherit";    
+    }
+    if (this.updateTimerId) {
+        clearTimeout(this.updateTimerId);
+    }
+    var self = this;
+    this.updateTimerId = setTimeout(function () { 
+        self.setBackCssControlUptate(true);
+    }, 10);
 };
 
 TCWebtopAnaMenu.prototype.setMenuGosterGizle = function(ishide, onlysize) {
+    if (!this.datasets.isFullLoad)
+        return;
+    
     if (isPresent(onlysize)) {
         this.setBackPanelUpdate();
         return;
@@ -1698,7 +1807,7 @@ TCWebtopAnaMenu.prototype.setMenuGosterGizle = function(ishide, onlysize) {
 };
 
 TCWebtopAnaMenu.prototype.focusEnd = function() {
-    this.aramaText1.setFocus();
+    this.searchEditFocusClear(this.araToplamSonuc == 0);
 };
 
 TCWebtopAnaMenu.prototype.setFormSelect = function(modulform) {
@@ -1707,14 +1816,14 @@ TCWebtopAnaMenu.prototype.setFormSelect = function(modulform) {
     var eklenmis = false;
     for (var i=0; i < this.datasets.sonkullan.length;i++) {
         var modul = this.datasets.sonkullan[i];
-        if (modulform.fr_key == modul.fr_key) {
+        if (modulform.md_fr_key == modul.md_fr_key) {
             eklenmis = true;
             break;
         }
     }       
 
     if ((eklenmis == false) && !mobileAndTabletCheck()) {
-        this.tiHizliAc.style.color = "rgba(10, 54, 84, 0.8)"; 
+        //this.tiHizliAc.style.color = "rgba(10, 54, 84, 0.8)"; 
         this.datasets.sonkullan.push(modulform);
     }
     this.openFormReport(modulform);
@@ -1746,7 +1855,6 @@ TCWebtopAnaMenu.prototype.setMenuActive = function(a) {
 TCWebtopAnaMenu.prototype.getMenuActive = function(a) {
     return this.menuActive;
 };
-
 
 TCWebtopAnaMenu.prototype.selectNextMenu = function(keyCode) {
     if (this.isSelectedItem != null) {
@@ -1788,7 +1896,7 @@ TCWebtopAnaMenu.prototype.selectNextMenu = function(keyCode) {
 function isNotCssSupport() {
     var browserver = navigator.userAgent.split('Firefox/')[1];
     if (browserver != null) 
-        return parseInt(browserver) < 108;
+        return parseInt(browserver) < 110;
     
     browserver = navigator.userAgent.split('Chrome/')[1];
     if (browserver != null) 
