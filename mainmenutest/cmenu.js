@@ -7,23 +7,7 @@ var menuTypeRight = 1;
 var paramShortcutMdKey = 99998;
 
 function getCssClasses() {
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    var menuItem = '.wtmMenuItem {align-items : center; cursor: pointer;  position: relative; display: flex; width : 100%; height: 38px; overflow: hidden; box-sizing:border-box; padding:4px; margin:4px; border-radius:6.5px;}';
-    var menuLabel = '.wtmMenuLabel {text-shadow : 0 0 4px rgb(0 0 0 / 60%); box-sizing:border-box; align-items : center; cursor: pointer;  display : flex;  flex-direction: row-reverse; vertical-align:baseline; position:relative; border-radius: 4px;  font-size : 14px; color : white; white-space : nowrap; justify-content :center; width:120px; margin : 1px 1px 7px 0px;  text-align: center;}';
-    var iconItem = '.wtmIconItem {position:relative; display:flex; background:transparent; font-size:24px; padding:2px; margin:2px; cursor:pointer;}';
-    var toolIcon = '.wtmToolIcon {width :65px; height: 100%; box-sizing:border-box; align-items: center; position:relative; display:flex; background:transparent; padding:4px 2px 4px; margin:2px;}';
-    var captionItem = '.wtmCaptionItem {position:relative; display:flex; font-size:13px; margin-left:6px; flex-wrap: wrap; overflow: unset;}';
-    var captionParent = '.wtmCaptionParent {align-items: flex-end; height: 38px; position:relative; display:flex; width: 100%; box-sizing:border-box; padding: 2px; margin:2px; margin-bottom: 5px;}';
-    var menuParent = '.wtmMenuParent {flex-direction : row; flex-wrap: wrap;  overflow : auto;  align-content: flex-start; position:relative; padding: 2px; display:flex; }';
-    var noItemFoundParent = '.wtmItemNotFound { display:flex; flex-wrap:wrap; align-content :space-around; justify-content : center;  place-content :space-around; flex-direction :column-reverse;  font-size: 16px; border-radius : 10px; background : white; position:relative; color:#101010cc; font-weight:bold; font-family:monospace !important; }';
-    var ribbonContainer = '.ribbon-container {cursor:default; display:inline-block; height:auto; margin-left:-10px; position:relative}';
-    var ribbonContainerB = '.ribbon-container:before{ border-bottom:11px solid var(--selectcolor); border-right:10px solid hsla(0,0%,100%,0); border-top:11px solid var(--selectcolor);content:" ";position:absolute;right:-10px;top:0}';
-    var ribbonContainerA = '.ribbon-container:after{border-bottom:6px solid hsla(0,0%,100%,0);border-right:6px solid var(--selectcolor);bottom:-6px;content:" ";left:0;position:absolute}';
-    var ribbonContainerC = '.ribbon-container .ribbon-text{background-color:var(--selectcolor);box-sizing:border-box;color:#fff;display:block;line-height:18px;padding:2px 14px;font-size:13px !important;}';
-    var controlRightSide =  '.wtmItemRight {box-sizing:border-box; height:24px; display:flex;padding:4px; justify-content: flex-end; margin: 0px 3px 0px auto; background :#628599fc; border:solid 3px transparent; border-radius: 100%; width:24px;}';
-    style.innerHTML = controlRightSide+ ' ' + toolIcon + " " + menuItem + " " + menuLabel + " " + iconItem + " " + captionItem + " " + captionParent + " " + menuParent  + " " + noItemFoundParent + " " + ribbonContainer + " " + ribbonContainerA + " " + ribbonContainerB + " " + ribbonContainerC;
-    return style;
+    return null; /**!!*/
 }
 
 function getToolIcoBack() {
