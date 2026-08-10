@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+
+<head>
+
+```
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>
+    Ses Kaydı + Gerçek Zamanlı Yazıya Çevirme
+</title>
+
+<style>
+
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f5f5f5;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+
+    button {
+        padding: 10px 18px;
+        margin: 5px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    button:disabled {
+        opacity: .5;
+        cursor: default;
+    }
+
+    #startBtn {
+        background: #2e7d32;
+        color: white;
+    }
+
+    #stopBtn {
+        background: #c62828;
+        color: white;
+    }
+
+    #clearBtn {
+        background: #757575;
+        color: white;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 250px;
+        box-sizing: border-box;
+        resize: vertical;
+        padding: 15px;
+        font-size: 17px;
+        line-height: 1.6;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+
+    #status {
+        margin-top: 15px;
+        padding: 10px;
+        background: #eee;
+        border-radius: 5px;
+    }
+
+    #speechStatus {
+        padding: 10px;
+        margin-top: 10px;
+        background: #f1f8e9;
+        border-radius: 5px;
+    }
+
+    #log {
+        background: #111;
+        color: #00ff00;
+        padding: 15px;
+        height: 150px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 13px;
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+<h1>
+    🎙️ Ses Kaydı + Gerçek Zamanlı Yazıya Çevirme
+</h1>
+
+<!-- ================================================= -->
+
+<!-- KAYIT -->
+
+<!-- ================================================= -->
+
+<div class="panel">
+
+```
+<h2>
+    1. Ses Kaydı
+</h2>
+
+<button id="startBtn">
+    🎙️ Kaydı Başlat
+</button>
+
+<button id="stopBtn" disabled>
+    ⏹️ Kaydı Durdur
+</button>
+
+<button id="clearBtn">
+    🗑️ Metni Temizle
+</button>
+
+
+<div id="status">
+    Durum: Hazır
+</div>
+```
+
+</div>
+
+<!-- ================================================= -->
+
+<!-- YAZIYA ÇEVİRME -->
+
+<!-- ================================================= -->
+
+<div class="panel">
+
+```
+<h2>
+    2. Konuşma Metni
+</h2>
+
+<div id="speechStatus">
+
+    💤 Konuşma tanıma beklemede...
+
+</div>
+
+<br>
+
+<textarea
+    id="transcript"
+    placeholder="Konuşmaya başladığınızda metin burada görünecek...">
+</textarea>
+```
+
+</div>
+
+<!-- ================================================= -->
+
+<!-- SES -->
+
+<!-- ================================================= -->
+
+<div class="panel">
+
+```
+<h2>
+    3. Kaydedilen Ses
+</h2>
+
+<audio
+    id="audioPlayer"
+    controls
+    style="width:100%;">
+</audio>
+```
+
+</div>
+
+<!-- ================================================= -->
+
+<!-- LOG -->
+
+<!-- ================================================= -->
+
+<div class="panel">
+
+```
+<h2>
+    4. Log
+</h2>
+
+<div id="log"></div>
+```
+
+</div>
+
+<script>
+
+
+/* =====================================================
+ *
+ * AUDIO RECORDER
+ *
+ * ===================================================== */
+
+class AudioRecorder {
+
+
+    constructor() {
+
+        this.mediaRecorder = null;
+
+        this.audioChunks = [];
+
+        this.stream = null;
+
+        this.audioBlob = null;
+
+    }
+
+
+    async start() {
+
+        try {
+
+            this.stream =
+                await navigator.mediaDevices
+                    .getUserMedia({
+                        audio: true
+                    });
+
+
+            this.audioChunks = [];
+
+
+            let mimeType = "";
+
+
+            if (
+                MediaRecorder.isTypeSupported(
+                    "audio/webm;codecs=opus"
+                )
+            ) {
+
+                mimeType =
+                    "audio/webm;codecs=opus";
+
+            }
+            else if (
+                MediaRecorder.isTypeSupported(
+                    "audio/webm"
+                )
+            ) {
+
+                mimeType =
+                    "audio/webm";
+
+            }
+
+
+            if (mimeType) {
+
+                this.mediaRecorder =
+                    new MediaRecorder(
+                        this.stream,
+                        {
+                            mimeType: mimeType
+                        }
+                    );
+
+            }
+            else {
+
+                this.mediaRecorder =
+                    new MediaRecorder(
+                        this.stream
+                    );
+
+            }
+
+
+            this.mediaRecorder
+                .ondataavailable =
+                (event) => {
+
+                    if (event.data.size > 0) {
+
+                        this.audioChunks
+                            .push(event.data);
+
+                    }
+
+                };
+
+
+            this.mediaRecorder
+                .onstop = () => {
+
+                    this.createBlob();
+
+                };
+
+
+            /*
+             * Kayıt başlat
+             */
+            this.mediaRecorder.start();
+
+
+            log(
+                "🎙️ Ses kaydı başladı."
+            );
+
+
+            setStatus(
+                "🔴 Kayıt yapılıyor..."
+            );
+
+
+        }
+        catch (error) {
+
+            log(
+                "❌ Mikrofon hatası: "
+                + error.name
+                + " - "
+                + error.message
+            );
+
+        }
+
+    }
+
+
+    stop() {
+
+        if (
+            this.mediaRecorder &&
+            this.mediaRecorder.state === "recording"
+        ) {
+
+            this.mediaRecorder.stop();
+
+        }
+
+
+        if (this.stream) {
+
+            this.stream
+                .getTracks()
+                .forEach(
+                    track => track.stop()
+                );
+
+        }
+
+
+        setStatus(
+            "Kayıt tamamlandı."
+        );
+
+
+        log(
+            "⏹️ Ses kaydı durdu."
+        );
+
+    }
+
+
+    createBlob() {
+
+        this.audioBlob =
+            new Blob(
+                this.audioChunks,
+                {
+                    type:
+                        this.mediaRecorder
+                            .mimeType
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(
+                this.audioBlob
+            );
+
+
+        document.getElementById(
+            "audioPlayer"
+        ).src = url;
+
+
+        log(
+            "Ses Blob oluşturuldu: "
+            + this.audioBlob.size
+            + " byte"
+        );
+
+    }
+
+}
+
+
+
+/* =====================================================
+ *
+ * SPEECH RECOGNITION
+ *
+ * ===================================================== */
+
+
+/*
+ * Chrome:
+ *
+ * webkitSpeechRecognition
+ *
+ * Bazı tarayıcılarda:
+ *
+ * SpeechRecognition
+ *
+ */
+
+const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+let recognition = null;
+
+let speechRunning = false;
+
+
+/*
+ * Browser destekliyor mu?
+ */
+if (!SpeechRecognition) {
+
+    log(
+        "❌ Speech Recognition bu tarayıcıda desteklenmiyor."
+    );
+
+    document.getElementById(
+        "speechStatus"
+    ).textContent =
+        "❌ Bu tarayıcı Speech Recognition desteklemiyor.";
+
+}
+else {
+
+    recognition =
+        new SpeechRecognition();
+
+
+    /*
+     * Türkçe
+     */
+    recognition.lang =
+        "tr-TR";
+
+
+    /*
+     * Ara sonuçları da gönder.
+     *
+     * false olursa sadece kesinleşmiş
+     * sonuçları verir.
+     */
+    recognition.interimResults =
+        true;
+
+
+    /*
+     * Birden fazla cümle tut.
+     */
+    recognition.continuous =
+        true;
+
+
+    /*
+     * Sonuç geldiğinde
+     */
+    recognition.onresult =
+        function(event) {
+
+
+            let finalText = "";
+
+            let interimText = "";
+
+
+            /*
+             * Gelen sonuçları dolaş
+             */
+            for (
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ) {
+
+                const transcript =
+                    event.results[i][0]
+                        .transcript;
+
+
+                if (
+                    event.results[i]
+                        .isFinal
+                ) {
+
+                    finalText +=
+                        transcript + " ";
+
+                }
+                else {
+
+                    interimText +=
+                        transcript;
+
+                }
+
+            }
+
+
+            /*
+             * Textarea
+             */
+            const textarea =
+                document.getElementById(
+                    "transcript"
+                );
+
+
+            /*
+             * Önceden kesinleşmiş metin
+             */
+            let existingText =
+                textarea.dataset.finalText
+                || "";
+
+
+            if (finalText) {
+
+                existingText +=
+                    finalText;
+
+                textarea.dataset.finalText =
+                    existingText;
+
+            }
+
+
+            /*
+             * Textarea'ya yaz
+             *
+             * Kesinleşmiş metin
+             * +
+             * geçici metin
+             */
+            textarea.value =
+                existingText +
+                interimText;
+
+
+            /*
+             * En alta scroll
+             */
+            textarea.scrollTop =
+                textarea.scrollHeight;
+
+
+            /*
+             * Durum
+             */
+            if (interimText) {
+
+                document.getElementById(
+                    "speechStatus"
+                ).textContent =
+                    "🟢 Dinliyorum: "
+                    + interimText;
+
+            }
+            else {
+
+                document.getElementById(
+                    "speechStatus"
+                ).textContent =
+                    "🟢 Konuşma algılandı.";
+
+            }
+
+        };
+
+
+    /*
+     * Speech recognition başladı
+     */
+    recognition.onstart =
+        function() {
+
+            speechRunning = true;
+
+            document.getElementById(
+                "speechStatus"
+            ).textContent =
+                "🟢 Dinliyorum...";
+
+            log(
+                "📝 Speech Recognition başladı."
+            );
+
+        };
+
+
+    /*
+     * Speech recognition durdu
+     */
+    recognition.onend =
+        function() {
+
+            speechRunning = false;
+
+            log(
+                "📝 Speech Recognition durdu."
+            );
+
+
+            /*
+             * Eğer ses kaydı hâlâ devam ediyorsa
+             * tekrar başlat.
+             *
+             * Çünkü bazı browser'larda
+             * recognition belirli süre sonra
+             * kendiliğinden durabiliyor.
+             */
+            if (
+                recorder.mediaRecorder &&
+                recorder.mediaRecorder.state ===
+                "recording"
+            ) {
+
+                try {
+
+                    recognition.start();
+
+                    log(
+                        "🔄 Speech Recognition yeniden başlatıldı."
+                    );
+
+                }
+                catch (e) {
+
+                }
+
+            }
+
+        };
+
+
+    /*
+     * Hata
+     */
+    recognition.onerror =
+        function(event) {
+
+            log(
+                "Speech Recognition hatası: "
+                + event.error
+            );
+
+
+            if (
+                event.error ===
+                "not-allowed"
+            ) {
+
+                document.getElementById(
+                    "speechStatus"
+                ).textContent =
+                    "❌ Mikrofon / konuşma izni verilmedi.";
+
+            }
+
+        };
+
+}
+
+
+
+/* =====================================================
+ *
+ * ANA RECORDER
+ *
+ * ===================================================== */
+
+const recorder =
+    new AudioRecorder();
+
+
+
+/* =====================================================
+ *
+ * START
+ *
+ * ===================================================== */
+
+document.getElementById(
+    "startBtn"
+).addEventListener(
+    "click",
+    async function() {
+
+
+        /*
+         * Önce metni temizle
+         */
+        const textarea =
+            document.getElementById(
+                "transcript"
+            );
+
+
+        textarea.dataset.finalText = "";
+
+
+        /*
+         * Ses kaydı başlat
+         */
+        await recorder.start();
+
+
+        /*
+         * Speech Recognition başlat
+         */
+        if (recognition) {
+
+            try {
+
+                recognition.start();
+
+            }
+            catch (error) {
+
+                log(
+                    "Speech Recognition başlatılamadı."
+                );
+
+            }
+
+        }
+
+
+        document.getElementById(
+            "startBtn"
+        ).disabled = true;
+
+
+        document.getElementById(
+            "stopBtn"
+        ).disabled = false;
+
+    }
+);
+
+
+
+/* =====================================================
+ *
+ * STOP
+ *
+ * ===================================================== */
+
+document.getElementById(
+    "stopBtn"
+).addEventListener(
+    "click",
+    function() {
+
+
+        /*
+         * Önce Speech Recognition durdur
+         */
+        if (
+            recognition &&
+            speechRunning
+        ) {
+
+            recognition.stop();
+
+        }
+
+
+        /*
+         * Sonra ses kaydını durdur
+         */
+        recorder.stop();
+
+
+        document.getElementById(
+            "startBtn"
+        ).disabled = false;
+
+
+        document.getElementById(
+            "stopBtn"
+        ).disabled = true;
+
+
+        document.getElementById(
+            "speechStatus"
+        ).textContent =
+            "💤 Konuşma tanıma durduruldu.";
+
+    }
+);
+
+
+
+/* =====================================================
+ *
+ * CLEAR
+ *
+ * ===================================================== */
+
+document.getElementById(
+    "clearBtn"
+).addEventListener(
+    "click",
+    function() {
+
+        const textarea =
+            document.getElementById(
+                "transcript"
+            );
+
+
+        textarea.value = "";
+
+        textarea.dataset.finalText = "";
+
+
+        log(
+            "Metin temizlendi."
+        );
+
+    }
+);
+
+
+
+/* =====================================================
+ *
+ * STATUS
+ *
+ * ===================================================== */
+
+function setStatus(text) {
+
+    document.getElementById(
+        "status"
+    ).textContent =
+        "Durum: " + text;
+
+}
+
+
+
+/* =====================================================
+ *
+ * LOG
+ *
+ * ===================================================== */
+
+function log(message) {
+
+    const logElement =
+        document.getElementById(
+            "log"
+        );
+
+
+    const time =
+        new Date()
+            .toLocaleTimeString();
+
+
+    logElement.innerHTML +=
+        "[" +
+        time +
+        "] " +
+        message +
+        "<br>";
+
+
+    logElement.scrollTop =
+        logElement.scrollHeight;
+
+}
+
+
+
+/* =====================================================
+ *
+ * SAYFA BAŞLANGICI
+ *
+ * ===================================================== */
+
+log(
+    "Sayfa hazır."
+);
+
+
+log(
+    "Secure Context: "
+    + window.isSecureContext
+);
+
+
+log(
+    "Speech Recognition: "
+    + (
+        SpeechRecognition
+            ? "destekleniyor"
+            : "desteklenmiyor"
+    )
+);
+
+
+</script>
+
+</body>
+
+</html>
