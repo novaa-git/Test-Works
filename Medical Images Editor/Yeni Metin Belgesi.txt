@@ -1,0 +1,17 @@
+21.14.46.	Kardiyoloji, Kbb, Beyin Cerrahisi vb..) branş ile ilgili olan insan organlarına ait resimler üzerinde çizim ve raporlama işlemlerini sağlayabilmelidir. 
+Resimler üzerinde serbest çizim veya diagonal çizim yapılabilmelidir. istenirse resim üzerinde işaretlenen noktaya ait % oran girişi de yapılabilmelidir.
+
+21.14.47.	Seçilen alanlar için dolgu şekli veya dolgu rengi belirlenebilmelidir, seçimi yapılan alan bu seçime göre dolgu yapılmalıdır. 
+(Örneğin bir Damara ait belli bir kısım seçilerek o kısım taranabilmelidir.)
+
+21.14.48.	Yanlış çizim, dolgu vb.. durumlarda yeni çizilen veya daha önce kaydedilip çağrılmış çizimler üzerinde kullanıcı dilediği kadar 
+"Önceki Adım" veya "Sonraki Adım" işlemi yapabilmelidir.
+
+
+21.14.46. The system must allow for drawing and reporting on images of human organs relevant to various medical specialties (e.g., cardiology, ENT, neurosurgery, etc.).
+It must be possible to perform freehand or diagonal drawing on the images. Additionally, the system should allow for the entry of a percentage value corresponding to a specific point marked on an image.
+
+21.14.47. It must be possible to define a fill pattern or fill color for selected areas, and the chosen area must be filled accordingly.
+(For example, a specific section of a blood vessel may be selected and filled/shaded.)
+
+21.14.48. In the event of an error—such as an incorrect drawing or fill—the user must be able to perform "Undo" ("Previous Step") or "Redo" ("Next Step") operations as many times as needed, whether for new drawings or for drawings that were previously saved and retrieved.
